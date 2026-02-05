@@ -1,0 +1,33 @@
+
+print username (from windows machine)
+print wallet money
+print crypto portfolio money
+print investment portfolio money
+print the day
+print money change for the current day
+
+an option to work for random amount of money
+	only once a day
+an option to invest in crypto
+	option to invest in 3 different cryptos
+	cripto should give x%/-x% a day
+an option to invest in funds
+	should give 1% every 3 days
+an option to gamble
+	keno (pick 3 numbers, for each number, multiply gains by 2)
+	loading bar gamble (3 loading bars that fill)
+an option to buy stuff
+	phone 1 - $100 - Unlock gambling
+	phone 2 - $350 - Unlock investing
+	phone 3 - $1000 - Unlock investing in crypto
+an option to skip a day
+an option to see assets you own (structs)
+an option to see the history of days
+
+autosave every day
+option to load your save
+save/load system
+
+- Try to use the ternary operator for if else statements
+- Use function prototypes for better code readability
+- This is supposed to teach me to use loops, memory management, structs, pointers
