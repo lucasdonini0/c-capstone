@@ -185,10 +185,10 @@ int load(){
     fscanf(file, "cancrypto: %d\n", &game.canInvestInCrypto);
     fscanf(file, "canstocks: %d\n", &game.canInvestInStocks);
     fscanf(file, "cangamble: %d\n", &game.canGamble);
-    fscanf(file, "asset1: %d\n", assets[0].purchased);
-    fscanf(file, "asset2: %d\n", assets[1].purchased);
-    fscanf(file, "asset3: %d\n", assets[2].purchased);
-    fscanf(file, "asset4: %d\n", assets[3].purchased);
+    fscanf(file, "asset1: %d\n", &assets[0].purchased);
+    fscanf(file, "asset2: %d\n", &assets[1].purchased);
+    fscanf(file, "asset3: %d\n", &assets[2].purchased);
+    fscanf(file, "asset4: %d\n", &assets[3].purchased);
     fclose(file);
 }
 
