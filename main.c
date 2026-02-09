@@ -22,7 +22,7 @@ typedef struct Game{
 Game game = {
     .username = "Player",
     .day = 1,
-    .wallet = 0.0f,
+    .wallet = 0.00f, 
     .wallet_day_update = 0.0f,
     .crypto = 0.0f,
     .stocks = 0.0f,
@@ -39,14 +39,18 @@ typedef struct assets{
     char description[100];
 }Assets;
 
-void DisplayMenu(), unlockall(Game *game), allassets(Assets *assets), DisplayAssetShop(Assets *assets);
-int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), open_shop(Game *game, Assets *assets), user_assets(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game);
+Assets assets[10];
+
+void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets);
+int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), user_assets(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game);
 
 const char *status_message = "";
 
 int main (void){
     char choice_input[10];
     int choice_inputnum = 0;
+    
+    allassets(assets);
 
     while (1){
         system("cls");
@@ -97,7 +101,7 @@ int main (void){
             break;
 
             case 5:
-                open_shop(&game, NULL);
+                game_shop(&game);
             break;
 
             case 6:
@@ -138,8 +142,9 @@ int main (void){
     return 0;
 }
 
-// I Have to call this function multiple times in the code, I don't feel comfortable doing so, but maybe this is normal?
+// I Have to call this function multiple times in the code, I don't feel comfortable doing so, but maybe this is normal? (08/02)
 // Will ask people and AI to review my code (Hi :D)
+// UPDATE: I had to declare Assets as a global variable :D. This also fixed other problems inside the other functions that use assets struct (09/02)
 void allassets(Assets *assets){ 
     assets[0] = (Assets){"Phone One", 100.0f, false, "This phone allow you to gamble! How awesome, isn't it?"};
     assets[1] = (Assets){"Phone Two", 350.0f, false, "This phone supports crypto wallets. Be like Daniel Fraga!"};
@@ -160,6 +165,10 @@ int save(){
     fprintf(file, "cancrypto: %d\n", game.canInvestInCrypto);
     fprintf(file, "canstocks: %d\n", game.canInvestInStocks);
     fprintf(file, "cangamble: %d\n", game.canGamble);
+    fprintf(file, "asset1: %d\n", assets[0].purchased);
+    fprintf(file, "asset2: %d\n", assets[1].purchased);
+    fprintf(file, "asset3: %d\n", assets[2].purchased);
+    fprintf(file, "asset4: %d\n", assets[3].purchased);
     fclose(file);
     remove("gamesave.txt");
     rename("gamesave.tmp", "gamesave.txt");
@@ -176,6 +185,10 @@ int load(){
     fscanf(file, "cancrypto: %d\n", &game.canInvestInCrypto);
     fscanf(file, "canstocks: %d\n", &game.canInvestInStocks);
     fscanf(file, "cangamble: %d\n", &game.canGamble);
+    fscanf(file, "asset1: %d\n", assets[0].purchased);
+    fscanf(file, "asset2: %d\n", assets[1].purchased);
+    fscanf(file, "asset3: %d\n", assets[2].purchased);
+    fscanf(file, "asset4: %d\n", assets[3].purchased);
     fclose(file);
 }
 
@@ -190,6 +203,7 @@ int workf(Game *game){
     
     game->wallet += random_money_amount;
     status_message = "You worked and made $%.2f!";
+    game->wallet_day_update += random_money_amount;
 }
 int crypto_investment(Game *game){
     //printf("[CRYPTO]"); // debug line
@@ -200,20 +214,12 @@ int stocks_investment(Game *game){
 int gamble(Game *game){
     //printf("[GAMBLE]"); // debug line
 }
-int open_gameshop(){
-    Assets assets[10];
-    allassets(assets);
-    open_shop(&game, assets);
-}
-int open_shop(Game *game, Assets *assets){
+int game_shop(Game *game){
     char choice_input[10];
     int choice_inputnum = 0;
     while (1){
-        Assets assets[10];
-        allassets(assets);
-
         system("cls");
-        DisplayAssetShop(assets);
+        DisplayAssetShop();
         printf("> %s ", status_message); 
         fgets(choice_input, sizeof(choice_input), stdin);
         if (isdigit(choice_input[0])){
@@ -227,33 +233,56 @@ int open_shop(Game *game, Assets *assets){
         switch (choice_inputnum)
         {
         case 1:
-            if (game->wallet >= assets[0].price){
-                status_message = "Purchased %s!", assets[0].asset_name;
+            if (game->wallet >= assets[0].price && assets[0].purchased != true){
+                //status_message = "Purchased %s!", assets[0].asset_name;
+                status_message = "Purchased!";
                 game->wallet -= assets[0].price;
+                assets[0].purchased = true;
+            }
+            else if (assets[0].purchased == true){
+                status_message = "You already own this item";
             }
             else{
                 status_message = "You're broke."; 
             }
         break;
         case 2:
-            if (game->wallet >= assets[1].price){
-                status_message = "Purchased %s!", assets[1].asset_name;
+            if (game->wallet >= assets[1].price && assets[1].purchased != true){
+                //status_message = "Purchased %s!", assets[1].asset_name;
+                status_message = "Purchased!";
+                game->wallet -= assets[1].price;
+                assets[1].purchased = true;
+            }
+            else if (assets[1].purchased == true){
+                status_message = "You already own this item";
             }
             else{
                 status_message = "You're broke.";
             }
         break;
         case 3:
-            if (game->wallet >= assets[2].price){
-                status_message = "Purchased %s!", assets[2].asset_name;
+            if (game->wallet >= assets[2].price && assets[2].purchased != true){
+                //status_message = "Purchased %s!", assets[2].asset_name;
+                status_message = "Purchased!";
+                game->wallet -= assets[2].price;
+                assets[2].purchased = true;
+            }
+            else if (assets[2].purchased == true){
+                status_message = "You already own this item";
             }
             else{
                 status_message = "You're broke.";
             }
         break;
         case 4:
-            if (game->wallet >= assets[3].price){
-                status_message = "Purchased %s!", assets[3].asset_name;
+            if (game->wallet >= assets[3].price && assets[3].purchased != true){
+                //status_message = "Purchased %s!", assets[3].asset_name;
+                status_message = "Purchased!";
+                game->wallet -= assets[3].price;
+                assets[3].purchased = true;                
+            }
+            else if (assets[3].purchased == true){
+                status_message = "You already own this item";
             }
             else{
                 status_message = "You're broke.";
@@ -283,9 +312,11 @@ int day_progress(Game *game){
     game->canWork = 1;
     save();
 }
+
+// I don't think this is useful
 int loadf(Game *game){ //Error handling: if can't find the file, (later) if the file was modified by other source that was not this program
-    //printf("[loaded]"); // debug line
     load();
+    status_message = "Loaded gamesave!";
 }
 void unlockall(Game *game){ // testing purposes [REMOVE]
     status_message = "Unlocked Everything [ADMIN]";
@@ -293,10 +324,10 @@ void unlockall(Game *game){ // testing purposes [REMOVE]
     game->canInvestInCrypto = 1;
     game->canInvestInStocks = 1;
     game->canWork = 1;
-    game->wallet = 999.999;
+    game->wallet += 9999.99;
 }
 
-void DisplayMenu(){ // make it update in real time
+void DisplayMenu(){
     printf("\r============================================================================================\n");
     printf("\rMoney Game Thing!\n");
     printf("\r============================================================================================\n");
@@ -317,7 +348,7 @@ void DisplayMenu(){ // make it update in real time
     printf("\rChoose an option: \n");
 }
 
-void DisplayAssetShop(Assets *assets){
+void DisplayAssetShop(){
     printf("\r============================================================================================\n");
     printf("\rAsset Shop!\n");
     printf("\r============================================================================================\n");
