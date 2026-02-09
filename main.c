@@ -374,7 +374,12 @@ void DisplayMenu(){
     printf("\r5. Buy assets\n");
     printf("\r6. View assets\n");
     printf("\r7. Day history\n");
-    printf("\r8. Sleep\n");
+    if (game.day == 1){
+        printf("\r8. Sleep (This will automatically save your game)\n");
+    }
+    else{
+        printf("\r8. Sleep\n");
+    }
     printf("\r9. Load game\n");
     printf("\r0. Close game\n\n");
     printf("\rChoose an option: \n");
