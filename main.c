@@ -5,7 +5,6 @@
 #include <windows.h>
 #include <time.h>
 
-
 typedef struct Game{
     char username[50];
     int day;
@@ -38,13 +37,12 @@ typedef struct assets{
     bool purchased;
     char description[100];
 }Assets;
-
 Assets assets[10];
 
-void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets);
-int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), user_assets(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game);
+char status_message[128];
 
-const char *status_message = "";
+void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets), set_status(const char *format, ...);
+int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), user_assets(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game);
 
 int main (void){
     char choice_input[10];
@@ -61,7 +59,7 @@ int main (void){
             choice_inputnum = atoi(&choice_input[0]);
         }
         else{
-            status_message = "Please enter a number from 1-9";
+            set_status("Please enter a number from 1-9");
             continue;
         }
 
@@ -69,10 +67,10 @@ int main (void){
         switch (choice_inputnum){ // Had to use if/else instead of ternary because the sides are not the same type (CLI update made me change all of this)
             case 1:
                 if (game.canWork) {
-                    status_message = "";
+                    set_status("");
                     workf(&game);
                 } else {
-                    status_message = "You are exhausted!";
+                    set_status("You are exhausted");
                 }
             break;
 
@@ -80,7 +78,7 @@ int main (void){
                 if (game.canInvestInCrypto) {
                     crypto_investment(&game);
                 } else {
-                    status_message = "You haven't unlocked this option yet. Check the shop for more information.";
+                    set_status("You haven't unlocked this option yet. Check the shop for more information.");
                 }
             break;
 
@@ -88,7 +86,7 @@ int main (void){
                 if (game.canInvestInStocks) {
                     stocks_investment(&game);
                 } else {
-                    status_message = "You haven't unlocked this option yet. Check the shop for more information.";
+                    set_status("You haven't unlocked this option yet. Check the shop for more information.");
                 }
             break;
 
@@ -96,7 +94,7 @@ int main (void){
                 if (game.canGamble) {
                     gamble(&game);
                 } else {
-                    status_message = "You haven't unlocked this option yet. Check the shop for more information.";
+                    set_status("You haven't unlocked this option yet. Check the shop for more information.");
                 }
             break;
 
@@ -112,12 +110,12 @@ int main (void){
                 if (game.day > 1) {
                     day_history(&game);
                 } else {
-                    status_message = "You haven't written your history yet.";
+                    set_status("You haven't written your history yet.");
                 }
             break;
 
             case 8:
-                status_message = "You went to bed!";
+                set_status("You went to bed!");
                 day_progress(&game);
             break;
 
@@ -134,12 +132,26 @@ int main (void){
     
             default:
                 if (choice_inputnum < 1 || choice_inputnum > 9){
-                    status_message = "Please enter a number from 1-9";
+                    set_status("Please enter a number from 1-9");
                 }
                 break;
         }
     }
     return 0;
+}
+
+void set_status(const char *format, ...){ // This was a bit hard to understand
+    va_list args;
+    va_start(args, format);
+
+    vsnprintf(
+        status_message,
+        sizeof(status_message),
+        format,
+        args
+    );
+
+    va_end(args);
 }
 
 // I Have to call this function multiple times in the code, I don't feel comfortable doing so, but maybe this is normal? (08/02)
@@ -202,7 +214,7 @@ int workf(Game *game){
     float random_money_amount = randx + ((float)rand() / (float)RAND_MAX) * (randy + randx);
     
     game->wallet += random_money_amount;
-    status_message = "You worked and made $%.2f!";
+    set_status("You worked and made $%.2f!", random_money_amount);
     game->wallet_day_update += random_money_amount;
 }
 int crypto_investment(Game *game){
@@ -226,7 +238,7 @@ int game_shop(Game *game){
             choice_inputnum = atoi(&choice_input[0]);
         }
         else{
-            status_message = "Please enter a number from 1-9";
+            set_status("Please enter a number from 1-9");
             continue;
         }
 
@@ -234,68 +246,64 @@ int game_shop(Game *game){
         {
         case 1:
             if (game->wallet >= assets[0].price && assets[0].purchased != true){
-                //status_message = "Purchased %s!", assets[0].asset_name;
-                status_message = "Purchased!";
+                set_status("Purchased %s!", assets[0].asset_name);
                 game->wallet -= assets[0].price;
                 assets[0].purchased = true;
             }
             else if (assets[0].purchased == true){
-                status_message = "You already own this item";
+                set_status("You already own this item");
             }
             else{
-                status_message = "You're broke."; 
+                set_status("You're broke."); 
             }
         break;
         case 2:
             if (game->wallet >= assets[1].price && assets[1].purchased != true){
-                //status_message = "Purchased %s!", assets[1].asset_name;
-                status_message = "Purchased!";
+                set_status("Purchased %s!", assets[1].asset_name);
                 game->wallet -= assets[1].price;
                 assets[1].purchased = true;
             }
             else if (assets[1].purchased == true){
-                status_message = "You already own this item";
+                set_status("You already own this item");
             }
             else{
-                status_message = "You're broke.";
+                set_status("You're broke.");
             }
         break;
         case 3:
             if (game->wallet >= assets[2].price && assets[2].purchased != true){
-                //status_message = "Purchased %s!", assets[2].asset_name;
-                status_message = "Purchased!";
+                set_status("Purchased %s!", assets[2].asset_name);
                 game->wallet -= assets[2].price;
                 assets[2].purchased = true;
             }
             else if (assets[2].purchased == true){
-                status_message = "You already own this item";
+                set_status("You already own this item");
             }
             else{
-                status_message = "You're broke.";
+                set_status("You're broke.");
             }
         break;
         case 4:
             if (game->wallet >= assets[3].price && assets[3].purchased != true){
-                //status_message = "Purchased %s!", assets[3].asset_name;
-                status_message = "Purchased!";
+                set_status("Purchased %s!", assets[3].asset_name);
                 game->wallet -= assets[3].price;
                 assets[3].purchased = true;                
             }
             else if (assets[3].purchased == true){
-                status_message = "You already own this item";
+                set_status("You already own this item");
             }
             else{
-                status_message = "You're broke.";
+                set_status("You're broke.");
             }
         break;
         case 0:
-            status_message = "";
-            return 0; // thought return 0 was used to close the whole program, this is where I learned I was wrong
+            set_status("");
+            return 0;
             break;
         
         default:
         if (choice_inputnum < 1 || choice_inputnum > 9){
-            status_message = "Please enter a number from 1-9";
+            set_status("Please enter a number from 1-9");
             }
         break;
         }
@@ -316,10 +324,10 @@ int day_progress(Game *game){
 // I don't think this is useful
 int loadf(Game *game){ //Error handling: if can't find the file, (later) if the file was modified by other source that was not this program
     load();
-    status_message = "Loaded gamesave!";
+    set_status("Loaded gamesave!");
 }
 void unlockall(Game *game){ // testing purposes [REMOVE]
-    status_message = "Unlocked Everything [ADMIN]";
+    set_status("Unlocked Everything [ADMIN]");
     game->canGamble = 1;
     game->canInvestInCrypto = 1;
     game->canInvestInStocks = 1;
@@ -350,7 +358,7 @@ void DisplayMenu(){
 
 void DisplayAssetShop(){
     printf("\r============================================================================================\n");
-    printf("\rAsset Shop!\n");
+    printf("\rAsset Shop! --- Wallet: %.2f\n", game.wallet);
     printf("\r============================================================================================\n");
     printf("\r%s --- Price: $%.2f --- %s\n %s\n\n", assets[0].asset_name, assets[0].price, assets[0].purchased ? "You own this item" : "You don't own this item", assets[0].description);
     printf("\r%s --- Price: $%.2f --- %s\n %s\n\n", assets[1].asset_name, assets[1].price, assets[1].purchased ? "You own this item" : "You don't own this item", assets[1].description);
