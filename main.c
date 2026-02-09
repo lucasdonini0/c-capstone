@@ -41,8 +41,8 @@ Assets assets[10];
 
 char status_message[128];
 
-void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets), set_status(const char *format, ...);
-int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), user_assets(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game);
+void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets), set_status(const char *format, ...), DisplayUserAssets();
+int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game), user_assets();
 
 int main (void){
     char choice_input[10];
@@ -59,7 +59,7 @@ int main (void){
             choice_inputnum = atoi(&choice_input[0]);
         }
         else{
-            set_status("Please enter a number from 1-9");
+            set_status("Please enter numbers only!");
             continue;
         }
 
@@ -103,7 +103,7 @@ int main (void){
             break;
 
             case 6:
-                user_assets(&game);
+                user_assets();
             break;
 
             case 7:
@@ -132,7 +132,7 @@ int main (void){
     
             default:
                 if (choice_inputnum < 1 || choice_inputnum > 9){
-                    set_status("Please enter a number from 1-9");
+                    set_status("This number is not an option.");
                 }
                 break;
         }
@@ -238,7 +238,7 @@ int game_shop(Game *game){
             choice_inputnum = atoi(&choice_input[0]);
         }
         else{
-            set_status("Please enter a number from 1-9");
+            set_status("Please enter numbers only!");
             continue;
         }
 
@@ -303,14 +303,11 @@ int game_shop(Game *game){
         
         default:
         if (choice_inputnum < 1 || choice_inputnum > 9){
-            set_status("Please enter a number from 1-9");
+            set_status("This number is not an option.");
             }
         break;
         }
     }
-}
-int user_assets(Game *game){
-
 }
 int day_history(Game *game){
     //printf("[DAY HISTORY]"); // debug line
@@ -320,7 +317,34 @@ int day_progress(Game *game){
     game->canWork = 1;
     save();
 }
+int user_assets(){
+    char choice_input[10];
+    int choice_inputnum = 0;
+    while (1){
+        system("cls");
+        DisplayUserAssets();
+        printf("> %s ", status_message); 
+        fgets(choice_input, sizeof(choice_input), stdin);
+        if (isdigit(choice_input[0])){
+            choice_inputnum = atoi(&choice_input[0]);
+        }
+        else{
+            set_status("Please enter numbers only!");
+            continue;
+        }
 
+        switch (choice_inputnum)
+        {
+        case 0:
+            return 0;
+            break;
+        
+        default:
+            set_status("You clearly have only one option, what are you doing?");
+            break;
+        }
+    }
+}
 // I don't think this is useful
 int loadf(Game *game){ //Error handling: if can't find the file, (later) if the file was modified by other source that was not this program
     load();
@@ -370,6 +394,28 @@ void DisplayAssetShop(){
     printf("\r2. Buy %s\n", assets[1].asset_name);
     printf("\r3. Buy %s\n", assets[2].asset_name);
     printf("\r4. Buy %s\n", assets[3].asset_name);
-    printf("\r0. Close shop\n\n");
+    printf("\r0. Go back\n\n");
+    printf("\rChoose an option: \n");
+}
+
+void DisplayUserAssets(){
+    printf("\r============================================================================================\n");
+    printf("\rAsset Inventory! --- Wallet: $%.2f\n", game.wallet);
+    printf("\r============================================================================================\n");
+    if (assets[0].purchased) {
+        printf("%s!\n", assets[0].asset_name);
+    }
+    if (assets[1].purchased) {
+        printf("%s!\n", assets[1].asset_name);
+    }
+    if (assets[2].purchased) {
+        printf("%s!\n", assets[2].asset_name);
+    }
+    if (assets[3].purchased) {
+        printf("%s!\n", assets[3].asset_name);
+    }
+    printf("\r============================================================================================\n");
+
+    printf("\r0. Go back\n\n");
     printf("\rChoose an option: \n");
 }
