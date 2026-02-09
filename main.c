@@ -47,9 +47,8 @@ int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *ga
 int main (void){
     char choice_input[10];
     int choice_inputnum = 0;
-    
     allassets(assets);
-
+    srand(time(NULL));
     while (1){
         system("cls");
         DisplayMenu();
@@ -158,10 +157,10 @@ void set_status(const char *format, ...){ // This was a bit hard to understand
 // Will ask people and AI to review my code (Hi :D)
 // UPDATE: I had to declare Assets as a global variable :D. This also fixed other problems inside the other functions that use assets struct (09/02)
 void allassets(Assets *assets){ 
-    assets[0] = (Assets){"Phone One", 100.0f, false, "This phone allow you to gamble! How awesome, isn't it?"};
-    assets[1] = (Assets){"Phone Two", 350.0f, false, "This phone supports crypto wallets. Be like Daniel Fraga!"};
-    assets[2] = (Assets){"Phone Three", 1000.0f, false, "This phone allows you to invest in stocks. The safest way to create wealth!"};
-    assets[3] = (Assets){"Descascador de Batata de Luxo", 9999.99f, false, "Buy and find out."};
+    assets[0] = (Assets){"Phone One", 49.99f, false, "This phone allow you to gamble! How awesome, isn't it?"};
+    assets[1] = (Assets){"Phone Two", 699.99f, false, "This phone supports crypto wallets. Be like Daniel Fraga!"};
+    assets[2] = (Assets){"Phone Three", 1999.99f, false, "This phone allows you to invest in stocks. The safest way to create wealth!"};
+    assets[3] = (Assets){"Descascador de Batata de Luxo", 99999.99f, false, "Buy and find out."};
 }
 
 // Don't know when to use void/int - 08/02
@@ -207,18 +206,17 @@ int load(){
 int workf(Game *game){
     //printf("[WORK]"); // debug line
     game->canWork = 0;
-    float randx = 0.5f;
-    float randy = 100.0f;
+    float randx = 15;
+    float randy = 60;
 
-    srand(time(NULL));
-    float random_money_amount = randx + ((float)rand() / (float)RAND_MAX) * (randy + randx);
+    float random_money_amount = randx + ((float)rand() / (float)RAND_MAX) * (randy - randx);
     
     game->wallet += random_money_amount;
     set_status("You worked and made $%.2f!", random_money_amount);
     game->wallet_day_update += random_money_amount;
 }
 int crypto_investment(Game *game){
-    //printf("[CRYPTO]"); // debug line
+    
 }
 int stocks_investment(Game *game){
     //printf("[STOCKS]"); // debug line
@@ -356,7 +354,7 @@ void unlockall(Game *game){ // testing purposes [REMOVE]
     game->canInvestInCrypto = 1;
     game->canInvestInStocks = 1;
     game->canWork = 1;
-    game->wallet += 9999.99;
+    game->wallet += 99999.99;
 }
 
 void DisplayMenu(){
@@ -418,6 +416,9 @@ void DisplayUserAssets(){
     }
     if (assets[3].purchased) {
         printf("%s!\n", assets[3].asset_name);
+    }
+    if (assets[0].purchased == false && assets[1].purchased == false && assets[2].purchased == false && assets[3].purchased == false){
+        printf("You don't own any items :(\n");
     }
     printf("\r============================================================================================\n");
 
