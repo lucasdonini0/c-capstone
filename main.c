@@ -46,9 +46,17 @@ typedef struct Crypto{
 }Crypto;
 Crypto crypto[3];
 
+typedef struct Stocks{
+    char name[15];
+    float price;
+    float owned;
+}Stocks;
+Stocks stocks[3];
+
 char status_message[128];
 
-void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets), set_status(const char *format, ...), DisplayUserAssets(), DisplayCryptoOptions(), allcrypto(Crypto *crypto), motherlode(Game *game);
+void unlockall(Game *game), set_status(const char *format, ...), DisplayUserAssets(), motherlode(Game *game);
+void DisplayStocksOptions(), allstocks(Stocks *stocks), DisplayMenu(), DisplayAssetShop(), allassets(Assets *assets), DisplayCryptoOptions(), allcrypto(Crypto *crypto);
 int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game), user_assets();
 
 int main (void){
@@ -56,6 +64,7 @@ int main (void){
     int choice_inputnum = 0;
     allassets(assets);
     allcrypto(crypto);
+    allstocks(stocks);
     srand(time(NULL));
     while (1){
         system("cls");
@@ -83,6 +92,7 @@ int main (void){
 
             case 2:
                 if (game.canInvestInCrypto) {
+                    set_status("");
                     crypto_investment(&game);
                 } else {
                     set_status("You haven't unlocked this option yet. Check the shop for more information.");
@@ -92,6 +102,7 @@ int main (void){
             case 3:
                 if (game.canInvestInStocks) {
                     stocks_investment(&game);
+                    set_status("");
                 } else {
                     set_status("You haven't unlocked this option yet. Check the shop for more information.");
                 }
@@ -100,6 +111,7 @@ int main (void){
             case 4:
                 if (game.canGamble) {
                     gamble(&game);
+                    set_status("");
                 } else {
                     set_status("You haven't unlocked this option yet. Check the shop for more information.");
                 }
@@ -107,10 +119,12 @@ int main (void){
 
             case 5:
                 game_shop(&game);
+                set_status("");
             break;
 
             case 6:
                 user_assets();
+                set_status("");
             break;
 
             case 7:
@@ -122,7 +136,6 @@ int main (void){
             break;
 
             case 8:
-                set_status("You went to bed!");
                 day_progress(&game);
             break;
 
@@ -179,6 +192,10 @@ void allcrypto(Crypto *crypto){
     //crypto[2] = (Crypto){"SOL", 50, 0.0f};
 }
 
+void allstocks(Stocks *stocks){
+    stocks[0] = (Stocks){"WOW", 500.0f, 0.0f};
+}
+
 // Don't know when to use void/int - 08/02
 int save(){
     FILE *file = fopen("gamesave.tmp", "w");
@@ -196,7 +213,9 @@ int save(){
     fprintf(file, "asset3: %d\n", assets[2].purchased);
     fprintf(file, "asset4: %d\n", assets[3].purchased);
     fprintf(file, "btcprice: %.2f\n", crypto[0].price);
-    fprintf(file, "btcowned: %.4f\n", crypto[0].owned);
+    fprintf(file, "btcowned: %.1f\n", crypto[0].owned);
+    fprintf(file, "wowprice: %.2f\n", stocks[0].price);
+    fprintf(file, "wowowned: %.2f\n", stocks[0].owned);
     fclose(file);
     remove("gamesave.txt");
     rename("gamesave.tmp", "gamesave.txt");
@@ -219,6 +238,8 @@ int load(){
     fscanf(file, "asset4: %d\n", &assets[3].purchased);
     fscanf(file, "btcprice: %f\n", &crypto[0].price);
     fscanf(file, "btcowned: %f\n", &crypto[0].owned);
+    fscanf(file, "wowprice: %f\n", &stocks[0].price);
+    fscanf(file, "wowowned: %f\n", &stocks[0].owned);
     fclose(file);
 }
 
@@ -270,7 +291,7 @@ int crypto_investment(Game *game){
                 game->wallet -= total_cost; 
                 crypto[0].owned += maxamount;
                 game->crypto += total_cost;
-                set_status("Purchased %.4f %s for $%.2f!", maxamount, crypto[0].name, total_cost);
+                set_status("Purchased %.1f %s for $%.2f!", maxamount, crypto[0].name, total_cost);
             }
         break;
         case 3:
@@ -294,7 +315,7 @@ int crypto_investment(Game *game){
                 game->wallet += valor_total;
                 game->crypto -= valor_total;
                 if (game->crypto < 0.0f) game->crypto = 0.0f;
-                set_status("Sold all %.4f %s for $%.2f!", crypto[0].owned, crypto[0].name, valor_total);
+                set_status("Sold all %.1f %s for $%.2f!", crypto[0].owned, crypto[0].name, valor_total);
                 crypto[0].owned = 0.0f;
             }
         break;
@@ -312,7 +333,80 @@ int crypto_investment(Game *game){
     }
 }
 int stocks_investment(Game *game){
-    //printf("[STOCKS]"); // debug line
+    char choice_input[10];
+    int choice_inputnum = 0;
+    while (1){
+        system("cls");
+        DisplayStocksOptions();
+        printf("> %s ", status_message);
+        fgets(choice_input, sizeof(choice_input), stdin);
+        if (isdigit(choice_input[0])){
+            choice_inputnum = atoi(&choice_input[0]);
+        } else {
+            set_status("Please enter numbers only!");
+            continue;
+        }
+
+        switch (choice_inputnum){
+        case 1: {
+            float cost = stocks[0].price * 1;
+            if (game->wallet >= cost){
+                game->wallet -= cost;
+                stocks[0].owned += 1.0f;
+                game->stocks += cost;
+                set_status("Purchased 1 %s for $%.2f!", stocks[0].name, cost);
+            } else {
+                set_status("Not enough money! You need $%.2f but have $%.2f.", cost, game->wallet);
+            }
+        break;
+        }
+        case 2: {
+            float cost = stocks[0].price * 10;
+            if (game->wallet >= cost){
+                game->wallet -= cost;
+                stocks[0].owned += 10.0f;
+                game->stocks += cost;
+                set_status("Purchased 10 %s for $%.2f!", stocks[0].name, cost);
+            } else {
+                set_status("Not enough money! You need $%.2f but have $%.2f.", cost, game->wallet);
+            }
+        break;
+        }
+        case 3: {
+            float cost = stocks[0].price * 100;
+            if (game->wallet >= cost){
+                game->wallet -= cost;
+                stocks[0].owned += 100.0f;
+                game->stocks += cost;
+                set_status("Purchased 100 %s for $%.2f!", stocks[0].name, cost);
+            } else {
+                set_status("Not enough money! You need $%.2f but have $%.2f.", cost, game->wallet);
+            }
+        break;
+        }
+        case 4:
+            if (stocks[0].owned <= 0.0f){
+                set_status("You don't own any %s to sell!", stocks[0].name);
+            } else {
+                float valor_total = stocks[0].owned * stocks[0].price;
+                game->wallet += valor_total;
+                game->stocks -= valor_total;
+                if (game->stocks < 0.0f) game->stocks = 0.0f;
+                set_status("Sold all %.2f %s for $%.2f!", stocks[0].owned, stocks[0].name, valor_total);
+                stocks[0].owned = 0.0f;
+            }
+        break;
+        case 0:
+            set_status("");
+            return 0;
+        break;
+        default:
+            if (choice_inputnum < 1 || choice_inputnum > 9){
+                set_status("This number is not an option.");
+            }
+        break;
+        }
+    }
 }
 int gamble(Game *game){
     //printf("[GAMBLE]"); // debug line
@@ -411,21 +505,60 @@ int day_progress(Game *game){
     game->day++;
     game->canWork = 1;
 
-    if(crypto[0].owned > 0.01){
-        int heads = rand() % 2;
-        if (heads){ // If I'm not wrong, 0 = tails, 1 = heads
-            float percentage = 0.05f + ((float)rand()) / ((float)RAND_MAX) * (0.80f - 0.05f);
-            float up = crypto[0].price * percentage;
-            crypto[0].price += up;
-            set_status("You went to bed! BTC went up by %.2f%% (+$%.2f)!", percentage * 100, up);
-        }
-        else{
-            float percentage = 0.10f + ((float)rand()) / ((float)RAND_MAX) * (0.80f - 0.10f);
-            float down = crypto[0].price * percentage;
-            crypto[0].price -= down;
-            set_status("You went to bed! BTC went down by %.2f%% (-$%.2f)!", percentage * 100, down);
-        }
+    // Crypto fluctuation logic
+    int heads = rand() % 2;
+    float crypto_percentage, crypto_change;
+    char crypto_symbol;
+    if (heads){ // If I'm not wrong, 0 = tails, 1 = heads
+        crypto_percentage = 0.10f + ((float)rand()) / ((float)RAND_MAX) * (0.80f - 0.10f);
+        crypto_change = crypto[0].price * crypto_percentage;
+        crypto[0].price += crypto_change;
+        crypto_symbol = '+';
+    }
+    else{
+        crypto_percentage = 0.10f + ((float)rand()) / ((float)RAND_MAX) * (0.30f - 0.10f);
+        crypto_change = crypto[0].price * crypto_percentage;
+        crypto[0].price -= crypto_change;
+        if (crypto[0].price < 100.0f) crypto[0].price = 100.0f;
+        crypto_symbol = '-';
+    }
+    if (crypto[0].owned > 0.01f){
         game->crypto = crypto[0].owned * crypto[0].price;
+    }
+
+    // Stocks fluctuation logic
+    int stocks_roll = rand() % 100;
+    float stocks_percentage, stocks_change;
+    char stocks_symbol;
+    if (stocks_roll < 80){ // cool 80/20 probability logic I saw in a repo
+        stocks_percentage = 0.1 + ((float)rand()) / ((float)RAND_MAX) * (0.2 - 0.1f);
+        stocks_change = stocks[0].price * stocks_percentage;
+        stocks[0].price += stocks_change;
+        stocks_symbol = '+';
+    } 
+    else{
+        stocks_percentage = 0.1 + ((float)rand()) / ((float)RAND_MAX) * (0.7 - 0.2f);
+        stocks_change = stocks[0].price * stocks_percentage;
+        stocks[0].price -= stocks_change;
+        if (stocks[0].price < 10.0f) stocks[0].price = 10.0f;
+        stocks_symbol = '-';
+    }
+    if (stocks[0].owned > 0.0f){
+        game->stocks = stocks[0].owned * stocks[0].price;
+    }
+
+    // Status
+    if (crypto[0].owned > 0.01f && stocks[0].owned <= 0.0f){
+        set_status("You went to bed! BTC %c%.2f%% (%c$%.2f)", crypto_symbol, crypto_percentage * 100, crypto_symbol, crypto_change);
+    } 
+    else if (stocks[0].owned > 0.0f && crypto[0].owned <= 0.01f){
+        set_status("You went to bed! WOW %c$%.2f%% (%c$%.2f)", stocks_symbol, stocks_percentage * 100, stocks_symbol, stocks_change);
+    } 
+    else if (crypto[0].owned > 0.01f && stocks[0].owned > 0.0f){
+        set_status("You went to bed! BTC %c%.2f%% (%c$%.2f) | WOW %c$%.2f%% (%c$%.2f)", crypto_symbol, crypto_percentage * 100, crypto_symbol, crypto_change, stocks_symbol, stocks_percentage * 100, stocks_symbol, stocks_change);
+    } 
+    else{
+        set_status("You went to bed!");
     }
 
     save();
@@ -551,12 +684,26 @@ void DisplayCryptoOptions(){
     printf("\r============================================================================================\n");
     printf("\rCrypto --- Wallet: $%.2f --- Crypto Portfolio: $%.2f\n", game.wallet, game.crypto);
     printf("\r============================================================================================\n");
-    printf("\r%s --- Price: $%.2f --- Amount owned: %.4f\n", crypto[0].name, crypto[0].price, crypto[0].owned);
+    printf("\r%s --- Price: $%.2f --- Amount owned: %.1f\n", crypto[0].name, crypto[0].price, crypto[0].owned);
     printf("\r============================================================================================\n");
     printf("\r1. Purchase 1 %s for $%.2f\n", crypto[0].name, crypto[0].price);
     printf("\r2. Purchase max (%.4f %s) for $%.2f\n", maxamount, crypto[0].name, game.wallet);
     printf("\r3. Sell 1 %s\n", crypto[0].name);
     printf("\r4. Sell all %s\n", crypto[0].name);
+    printf("\r0. Go back\n\n");
+    printf("\rChoose an option: \n");
+}
+
+void DisplayStocksOptions(){
+    printf("\r============================================================================================\n");
+    printf("\rStocks --- Wallet: $%.2f --- Stocks Portfolio: $%.2f\n", game.wallet, game.stocks);
+    printf("\r============================================================================================\n");
+    printf("\r%s --- Price: $%.2f --- Amount owned: %.2f\n", stocks[0].name, stocks[0].price, stocks[0].owned);
+    printf("\r============================================================================================\n");
+    printf("\r1. Buy 1 %s for $%.2f\n", stocks[0].name, stocks[0].price);
+    printf("\r2. Buy 10 %s for $%.2f\n", stocks[0].name, stocks[0].price * 10);
+    printf("\r3. Buy 100 %s for $%.2f\n", stocks[0].name, stocks[0].price * 100);
+    printf("\r4. Sell all %s\n", stocks[0].name);
     printf("\r0. Go back\n\n");
     printf("\rChoose an option: \n");
 }
