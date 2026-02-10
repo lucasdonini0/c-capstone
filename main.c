@@ -39,15 +39,23 @@ typedef struct assets{
 }Assets;
 Assets assets[10];
 
+typedef struct Crypto{
+    char name[15];
+    float price;
+    float owned;
+}Crypto;
+Crypto crypto[3];
+
 char status_message[128];
 
-void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets), set_status(const char *format, ...), DisplayUserAssets();
+void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets), set_status(const char *format, ...), DisplayUserAssets(), DisplayCryptoOptions(), allcrypto(Crypto *crypto);
 int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game), user_assets();
 
 int main (void){
     char choice_input[10];
     int choice_inputnum = 0;
     allassets(assets);
+    allcrypto(crypto);
     srand(time(NULL));
     while (1){
         system("cls");
@@ -163,8 +171,13 @@ void allassets(Assets *assets){
     assets[3] = (Assets){"Descascador de Batata de Luxo", 99999.99f, false, "Buy and find out."};
 }
 
-// Don't know when to use void/int - 08/02
+void allcrypto(Crypto *crypto){
+    crypto[0] = (Crypto){"BTC", 3000, 0.0f};
+    //crypto[1] = (Crypto){"ETH", 200, 0.0f};
+    //crypto[2] = (Crypto){"SOL", 50, 0.0f};
+}
 
+// Don't know when to use void/int - 08/02
 int save(){
     FILE *file = fopen("gamesave.tmp", "w");
     fprintf(file, "day: %d\n", game.day);
@@ -216,7 +229,82 @@ int workf(Game *game){
     game->wallet_day_update += random_money_amount;
 }
 int crypto_investment(Game *game){
-    
+    char choice_input[10];
+    int choice_inputnum = 0;
+    while (1){
+        system("cls");
+        DisplayCryptoOptions();
+        printf("> %s ", status_message); 
+        fgets(choice_input, sizeof(choice_input), stdin);
+        if (isdigit(choice_input[0])){
+            choice_inputnum = atoi(&choice_input[0]);
+        }
+        else{
+            set_status("Please enter numbers only!");
+            continue;
+        }
+
+        switch (choice_inputnum){
+        case 1:
+            if (game->wallet >= crypto[0].price){
+                game->wallet  -= crypto[0].price;
+                crypto[0].owned += 1.0f;
+                game->crypto  += crypto[0].price;
+                set_status("Purchased 1 %s for $%.2f!", crypto[0].name, crypto[0].price);
+            } else {
+                set_status("Not enough money! You need $%.2f but have $%.2f.", crypto[0].price, game->wallet);
+            }
+        break;
+        case 2:
+            if (game->wallet < crypto[0].price * 0.0001f){
+                set_status("Not enough money to buy any %s!", crypto[0].name);
+            } 
+            else{
+                float maxamount = game->wallet / crypto[0].price;
+                float total_cost = maxamount * crypto[0].price;
+                game->wallet -= total_cost; 
+                crypto[0].owned += maxamount;
+                game->crypto += total_cost;
+                set_status("Purchased %.4f %s for $%.2f!", maxamount, crypto[0].name, total_cost);
+            }
+        break;
+        case 3:
+            if (crypto[0].owned < 1.0f){
+                set_status("You don't have 1 full %s to sell! You own %.4f.", crypto[0].name, crypto[0].owned);
+            } 
+            else{
+                crypto[0].owned -= 1.0f;
+                game->wallet += crypto[0].price;
+                game->crypto -= crypto[0].price;
+                if (game->crypto < 0.0f) game->crypto = 0.0f;
+                set_status("Sold 1 %s for $%.2f!", crypto[0].name, crypto[0].price);
+            }
+        break;
+        case 4:
+            if (crypto[0].owned <= 0.0f){
+                set_status("You don't own any %s to sell!", crypto[0].name);
+            } 
+            else{
+                float valor_total = crypto[0].owned * crypto[0].price;
+                game->wallet += valor_total;
+                game->crypto -= valor_total;
+                if (game->crypto < 0.0f) game->crypto = 0.0f;
+                set_status("Sold all %.4f %s for $%.2f!", crypto[0].owned, crypto[0].name, valor_total);
+                crypto[0].owned = 0.0f;
+            }
+        break;
+        case 0:
+            set_status("");
+            return 0;
+        break;
+        default:
+        if (choice_inputnum < 1 || choice_inputnum > 9){
+            set_status("This number is not an option.");
+            }
+        break;
+        }
+        // 
+    }
 }
 int stocks_investment(Game *game){
     //printf("[STOCKS]"); // debug line
@@ -258,7 +346,7 @@ int game_shop(Game *game){
         case 2:
             if (game->wallet >= assets[1].price && assets[1].purchased != true){
                 set_status("Purchased %s!", assets[1].asset_name);
-                game->wallet -= assets[1].price;
+                game->wallet = game->wallet - assets[1].price;
                 assets[1].purchased = true;
             }
             else if (assets[1].purchased == true){
@@ -271,7 +359,7 @@ int game_shop(Game *game){
         case 3:
             if (game->wallet >= assets[2].price && assets[2].purchased != true){
                 set_status("Purchased %s!", assets[2].asset_name);
-                game->wallet -= assets[2].price;
+                game->wallet = game->wallet - assets[2].price;
                 assets[2].purchased = true;
             }
             else if (assets[2].purchased == true){
@@ -284,7 +372,7 @@ int game_shop(Game *game){
         case 4:
             if (game->wallet >= assets[3].price && assets[3].purchased != true){
                 set_status("Purchased %s!", assets[3].asset_name);
-                game->wallet -= assets[3].price;
+                game->wallet = game->wallet - assets[3].price;
                 assets[3].purchased = true;                
             }
             else if (assets[3].purchased == true){
@@ -343,6 +431,7 @@ int user_assets(){
         }
     }
 }
+
 // I don't think this is useful
 int loadf(Game *game){ //Error handling: if can't find the file, (later) if the file was modified by other source that was not this program
     load();
@@ -385,7 +474,7 @@ void DisplayMenu(){
 
 void DisplayAssetShop(){
     printf("\r============================================================================================\n");
-    printf("\rAsset Shop! --- Wallet: %.2f\n", game.wallet);
+    printf("\rAsset Shop! --- Wallet: $%.2f\n", game.wallet);
     printf("\r============================================================================================\n");
     printf("\r%s --- Price: $%.2f --- %s\n %s\n\n", assets[0].asset_name, assets[0].price, assets[0].purchased ? "You own this item" : "You don't own this item", assets[0].description);
     printf("\r%s --- Price: $%.2f --- %s\n %s\n\n", assets[1].asset_name, assets[1].price, assets[1].purchased ? "You own this item" : "You don't own this item", assets[1].description);
@@ -422,6 +511,21 @@ void DisplayUserAssets(){
     }
     printf("\r============================================================================================\n");
 
+    printf("\r0. Go back\n\n");
+    printf("\rChoose an option: \n");
+}
+
+void DisplayCryptoOptions(){
+    float maxamount = game.wallet / crypto[0].price;
+    printf("\r============================================================================================\n");
+    printf("\rCrypto --- Wallet: $%.2f --- Crypto Portfolio: $%.2f\n", game.wallet, game.crypto);
+    printf("\r============================================================================================\n");
+    printf("\r%s --- Price: $%.2f --- Amount owned: %.4f\n", crypto[0].name, crypto[0].price, crypto[0].owned);
+    printf("\r============================================================================================\n");
+    printf("\r1. Purchase 1 %s for $%.2f\n", crypto[0].name, crypto[0].price);
+    printf("\r2. Purchase max (%.4f %s) for $%.2f\n", maxamount, crypto[0].name, game.wallet);
+    printf("\r3. Sell 1 %s\n", crypto[0].name);
+    printf("\r4. Sell all %s\n", crypto[0].name);
     printf("\r0. Go back\n\n");
     printf("\rChoose an option: \n");
 }
