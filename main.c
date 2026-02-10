@@ -48,7 +48,7 @@ Crypto crypto[3];
 
 char status_message[128];
 
-void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets), set_status(const char *format, ...), DisplayUserAssets(), DisplayCryptoOptions(), allcrypto(Crypto *crypto);
+void DisplayMenu(), unlockall(Game *game), DisplayAssetShop(), allassets(Assets *assets), set_status(const char *format, ...), DisplayUserAssets(), DisplayCryptoOptions(), allcrypto(Crypto *crypto), motherlode(Game *game);
 int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game), user_assets();
 
 int main (void){
@@ -136,7 +136,9 @@ int main (void){
             case 99: // testing purposes [REMOVE]
                 unlockall(&game);
                 break;
-    
+            case 999:
+                motherlode(&game);
+                break;
             default:
                 if (choice_inputnum < 1 || choice_inputnum > 9){
                     set_status("This number is not an option.");
@@ -193,6 +195,8 @@ int save(){
     fprintf(file, "asset2: %d\n", assets[1].purchased);
     fprintf(file, "asset3: %d\n", assets[2].purchased);
     fprintf(file, "asset4: %d\n", assets[3].purchased);
+    fprintf(file, "btcprice: %.2f\n", crypto[0].price);
+    fprintf(file, "btcowned: %.4f\n", crypto[0].owned);
     fclose(file);
     remove("gamesave.txt");
     rename("gamesave.tmp", "gamesave.txt");
@@ -213,11 +217,12 @@ int load(){
     fscanf(file, "asset2: %d\n", &assets[1].purchased);
     fscanf(file, "asset3: %d\n", &assets[2].purchased);
     fscanf(file, "asset4: %d\n", &assets[3].purchased);
+    fscanf(file, "btcprice: %f\n", &crypto[0].price);
+    fscanf(file, "btcowned: %f\n", &crypto[0].owned);
     fclose(file);
 }
 
 int workf(Game *game){
-    //printf("[WORK]"); // debug line
     game->canWork = 0;
     float randx = 15;
     float randy = 60;
@@ -335,6 +340,7 @@ int game_shop(Game *game){
                 set_status("Purchased %s!", assets[0].asset_name);
                 game->wallet -= assets[0].price;
                 assets[0].purchased = true;
+                game->canGamble = true;
             }
             else if (assets[0].purchased == true){
                 set_status("You already own this item");
@@ -348,6 +354,7 @@ int game_shop(Game *game){
                 set_status("Purchased %s!", assets[1].asset_name);
                 game->wallet = game->wallet - assets[1].price;
                 assets[1].purchased = true;
+                game->canInvestInCrypto = true;
             }
             else if (assets[1].purchased == true){
                 set_status("You already own this item");
@@ -361,6 +368,7 @@ int game_shop(Game *game){
                 set_status("Purchased %s!", assets[2].asset_name);
                 game->wallet = game->wallet - assets[2].price;
                 assets[2].purchased = true;
+                game->canInvestInStocks = true;
             }
             else if (assets[2].purchased == true){
                 set_status("You already own this item");
@@ -406,14 +414,16 @@ int day_progress(Game *game){
     if(crypto[0].owned > 0.01){
         int heads = rand() % 2;
         if (heads){ // If I'm not wrong, 0 = tails, 1 = heads
-            float up = 100.0f + ((float)rand() / (float)RAND_MAX) * (500.0f - 100.0f);
+            float percentage = 0.05f + ((float)rand()) / ((float)RAND_MAX) * (0.80f - 0.05f);
+            float up = crypto[0].price * percentage;
             crypto[0].price += up;
-            set_status("You went to bed! BTC went up by $%.2f!", up);
+            set_status("You went to bed! BTC went up by %.2f%% (+$%.2f)!", percentage * 100, up);
         }
         else{
-            float down = 100.0f + ((float)rand() / (float)RAND_MAX) * (1000.0f - 100.0f);
+            float percentage = 0.10f + ((float)rand()) / ((float)RAND_MAX) * (0.80f - 0.10f);
+            float down = crypto[0].price * percentage;
             crypto[0].price -= down;
-            set_status("You went to bed! BTC went down by $%.2f!", down);
+            set_status("You went to bed! BTC went down by %.2f%% (-$%.2f)!", percentage * 100, down);
         }
         game->crypto = crypto[0].owned * crypto[0].price;
     }
@@ -461,6 +471,10 @@ void unlockall(Game *game){ // testing purposes [REMOVE]
     game->canInvestInStocks = 1;
     game->canWork = 1;
     game->wallet += 99999.99;
+}
+void motherlode(Game *game){
+    game->wallet += 99999;
+    set_status ("[MOTHERLODE]");
 }
 
 void DisplayMenu(){
