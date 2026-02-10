@@ -31,3 +31,9 @@ save/load system
 - Try to use the ternary operator for if else statements
 - Use function prototypes for better code readability
 - This is supposed to teach me to use loops, memory management, structs, pointers
+
+UPDATE:
+Gamble option:
+	- heads or tails (3 games a day limit)
+	- keno > display numbers from 1 - 20, prompt the user to pick three numbers, machine choose 6 random numbers, compare the numbers chosen by the user and machine,
+		if 1 match = x1 bet, 2 match = x3 bet, 3 match = x4 bet
