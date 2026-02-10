@@ -83,7 +83,6 @@ int main (void){
         switch (choice_inputnum){ // Had to use if/else instead of ternary because the sides are not the same type (CLI update made me change all of this)
             case 1:
                 if (game.canWork) {
-                    set_status("");
                     workf(&game);
                 } else {
                     set_status("You are exhausted");
@@ -409,7 +408,7 @@ int stocks_investment(Game *game){
     }
 }
 int gamble(Game *game){
-    //printf("[GAMBLE]"); // debug line
+    
 }
 int game_shop(Game *game){
     char choice_input[10];
@@ -498,13 +497,13 @@ int game_shop(Game *game){
     }
 }
 int day_history(Game *game){
-    //printf("[DAY HISTORY]"); // debug line
+   
 }
 
 int day_progress(Game *game){
+    game -> wallet_day_update = 0.0f;
     game->day++;
     game->canWork = 1;
-
     // Crypto fluctuation logic
     int heads = rand() % 2;
     float crypto_percentage, crypto_change;
@@ -524,6 +523,7 @@ int day_progress(Game *game){
     }
     if (crypto[0].owned > 0.01f){
         game->crypto = crypto[0].owned * crypto[0].price;
+        game->wallet_day_update += crypto_change;
     }
 
     // Stocks fluctuation logic
@@ -545,9 +545,10 @@ int day_progress(Game *game){
     }
     if (stocks[0].owned > 0.0f){
         game->stocks = stocks[0].owned * stocks[0].price;
+        game->wallet_day_update += stocks_change;
     }
 
-    // Status
+    // Status & wallet_day_update
     if (crypto[0].owned > 0.01f && stocks[0].owned <= 0.0f){
         set_status("You went to bed! BTC %c%.2f%% (%c$%.2f)", crypto_symbol, crypto_percentage * 100, crypto_symbol, crypto_change);
     } 
@@ -603,7 +604,6 @@ void unlockall(Game *game){ // testing purposes [REMOVE]
     game->canInvestInCrypto = 1;
     game->canInvestInStocks = 1;
     game->canWork = 1;
-    game->wallet += 99999.99;
 }
 void motherlode(Game *game){
     game->wallet += 99999;
