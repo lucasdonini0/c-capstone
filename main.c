@@ -398,9 +398,26 @@ int game_shop(Game *game){
 int day_history(Game *game){
     //printf("[DAY HISTORY]"); // debug line
 }
+
 int day_progress(Game *game){
     game->day++;
     game->canWork = 1;
+
+    if(crypto[0].owned > 0.01){
+        int heads = rand() % 2;
+        if (heads){ // If I'm not wrong, 0 = tails, 1 = heads
+            float up = 100.0f + ((float)rand() / (float)RAND_MAX) * (500.0f - 100.0f);
+            crypto[0].price += up;
+            set_status("You went to bed! BTC went up by $%.2f!", up);
+        }
+        else{
+            float down = 100.0f + ((float)rand() / (float)RAND_MAX) * (1000.0f - 100.0f);
+            crypto[0].price -= down;
+            set_status("You went to bed! BTC went down by $%.2f!", down);
+        }
+        game->crypto = crypto[0].owned * crypto[0].price;
+    }
+
     save();
 }
 int user_assets(){
