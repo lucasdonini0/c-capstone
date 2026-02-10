@@ -55,8 +55,10 @@ Stocks stocks[3];
 
 char status_message[128];
 
+// not readable at all, don't know what to do about this yet
 void unlockall(Game *game), set_status(const char *format, ...), DisplayUserAssets(), motherlode(Game *game);
 void DisplayStocksOptions(), allstocks(Stocks *stocks), DisplayMenu(), DisplayAssetShop(), allassets(Assets *assets), DisplayCryptoOptions(), allcrypto(Crypto *crypto);
+void DisplayGambleOptions(), DisplayCoinflip();
 int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game), user_assets();
 
 int main (void){
@@ -100,8 +102,8 @@ int main (void){
 
             case 3:
                 if (game.canInvestInStocks) {
-                    stocks_investment(&game);
                     set_status("");
+                    stocks_investment(&game);
                 } else {
                     set_status("You haven't unlocked this option yet. Check the shop for more information.");
                 }
@@ -109,21 +111,21 @@ int main (void){
 
             case 4:
                 if (game.canGamble) {
-                    gamble(&game);
                     set_status("");
+                    gamble(&game);
                 } else {
                     set_status("You haven't unlocked this option yet. Check the shop for more information.");
                 }
             break;
 
             case 5:
-                game_shop(&game);
                 set_status("");
+                game_shop(&game);
             break;
 
             case 6:
-                user_assets();
                 set_status("");
+                user_assets();
             break;
 
             case 7:
@@ -408,7 +410,88 @@ int stocks_investment(Game *game){
     }
 }
 int gamble(Game *game){
-    
+    char choice_input[10];
+    int choice_inputnum = 0;
+
+    while (1){
+        system("cls");
+        DisplayGambleOptions();
+        printf("> %s ", status_message);
+        fgets(choice_input, sizeof(choice_input), stdin);
+        if (isdigit(choice_input[0])){
+            choice_inputnum = atoi(&choice_input[0]);
+        } else {
+            set_status("Please enter numbers only!");
+            continue;
+        }
+
+        switch(choice_inputnum){
+        case 1: {
+            system("cls");
+            printf("\r============================================================================================\n");
+            printf("\rCoinflip --- Wallet: $%.2f\n", game->wallet);
+            printf("\r============================================================================================\n");
+            printf("\rEnter your bet amount: $");
+
+            float bet = 0.0f;
+            scanf("%f", &bet);
+            while(getchar() != '\n');
+
+            if (bet <= 0.0f){
+                set_status("Bet must be greater than $0!");
+                break;
+            }
+            if (bet > game->wallet){
+                set_status("Not enough money! You have $%.2f.", game->wallet);
+                break;
+            }
+
+            while (1){
+                system("cls");
+                DisplayCoinflip();
+                printf("> %s ", status_message);
+                fgets(choice_input, sizeof(choice_input), stdin);
+                if (!isdigit(choice_input[0])){
+                    set_status("Please enter numbers only!");
+                    continue;
+                }
+                int flip_choice = atoi(&choice_input[0]);
+
+                if (flip_choice == 0){
+                    set_status("You cancelled the coinflip!");
+                    break;
+                }
+                if (flip_choice != 1 && flip_choice != 2){
+                    set_status("Invalid option!");
+                    continue;
+                }
+
+                // 1 = heads, 2 = tails
+                int h_or_t = rand() % 2 + 1;
+                const char *result_str = (h_or_t == 1) ? "Heads" : "Tails";
+                const char *choice_str = (flip_choice == 1) ? "Heads" : "Tails";
+
+                if (flip_choice == h_or_t){
+                    game->wallet += bet;
+                    set_status("You picked %s, it was %s! You won $%.2f!", choice_str, result_str, bet);
+                } 
+                else{
+                    game->wallet -= bet;
+                    set_status("You picked %s, it was %s! You lost $%.2f!", choice_str, result_str, bet);
+                }
+                break;
+            }
+        break;
+        }
+        case 0:
+            set_status("");
+            return 0;
+        break;
+        default:
+            set_status("This number is not an option.");
+        break;
+        }
+    }
 }
 int game_shop(Game *game){
     char choice_input[10];
@@ -497,13 +580,13 @@ int game_shop(Game *game){
     }
 }
 int day_history(Game *game){
-   
-}
 
+}
 int day_progress(Game *game){
-    game -> wallet_day_update = 0.0f;
+    game->wallet_day_update = 0.0f;
     game->day++;
     game->canWork = 1;
+
     // Crypto fluctuation logic
     int heads = rand() % 2;
     float crypto_percentage, crypto_change;
@@ -620,7 +703,7 @@ void DisplayMenu(){
     printf("\rOptions\n");
     printf("\r1. Work %s\n", (game.canWork) ? "(Unlocked)" : "(Locked)");
     printf("\r2. Invest in Crypto %s\n", (game.canInvestInCrypto) ? "(Unlocked)" : "(Locked)");
-    printf("\r3. Invest in Funds %s\n", (game.canInvestInStocks) ? "(Unlocked)" : "(Locked)");
+    printf("\r3. Invest in Stocks %s\n", (game.canInvestInStocks) ? "(Unlocked)" : "(Locked)");
     printf("\r4. Gamble %s\n", (game.canGamble) ? "(Unlocked)" : "(Locked)");
     printf("\r5. Buy assets\n");
     printf("\r6. View assets\n");
@@ -706,4 +789,25 @@ void DisplayStocksOptions(){
     printf("\r4. Sell all %s\n", stocks[0].name);
     printf("\r0. Go back\n\n");
     printf("\rChoose an option: \n");
+}
+
+
+void DisplayGambleOptions(){
+    printf("\r============================================================================================\n");
+    printf("\rGamble --- Wallet: $%.2f\n", game.wallet);
+    printf("\r============================================================================================\n");
+    printf("\r1. Coinflip\n");
+    printf("\r2. Keno (Coming soon!)\n");
+    printf("\r0. Go back\n\n");
+    printf("\rChoose an option: \n");
+}
+
+void DisplayCoinflip(){
+    printf("\r============================================================================================\n");
+    printf("\rCoinflip --- Wallet: $%.2f\n", game.wallet);
+    printf("\r============================================================================================\n");
+    printf("\r1. Heads\n");
+    printf("\r2. Tails\n");
+    printf("\r0. Cancel (you will lose your bet!)\n\n");
+    printf("\rChoose: \n");
 }
