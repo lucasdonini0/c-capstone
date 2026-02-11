@@ -56,17 +56,35 @@ Stocks stocks[3];
 
 typedef struct dayrecord{
     int day;
-    float change;
+    float walletd;
 }dayrecord;
-
 dayrecord *History = NULL;
+int history_count = 0;
+int history_capacity = 0;
+
+void add_day_to_history(int day, float walletd){
+    if (History == NULL || history_count >= history_capacity){
+        int new_capacity = (history_capacity == 0) ? 30 : history_capacity * 2;
+        dayrecord *new_history = realloc(History, sizeof(dayrecord) * new_capacity);
+        if (new_history == NULL){
+            printf("Failed to reallocate memory!");
+            return;
+        }
+        History = new_history;
+        history_capacity = new_capacity;
+    }
+    History[history_count].day = day;
+    History[history_count].walletd = walletd;
+    history_count++;
+}
 
 char status_message[128];
 
 // not readable at all, don't know what to do about this yet
 void unlockall(Game *game), set_status(const char *format, ...), DisplayUserAssets(), motherlode(Game *game);
-void DisplayStocksOptions(), allstocks(Stocks *stocks), DisplayMenu(), DisplayAssetShop(), allassets(Assets *assets), DisplayCryptoOptions(), allcrypto(Crypto *crypto);
+void DisplayStocksOptions(), allstocks(Stocks *stocks), DisplayMenu(), DisplayAssetShop(), allassets(Assets *assets), DisplayCryptoOptions(), allcrypto(Crypto *crypto), add_day_to_history(int day, float change);
 void DisplayGambleOptions(), DisplayCoinflip(), DisplayKeno();
+void DisplayDayHistory();
 int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game), user_assets();
 
 int main (void){
@@ -152,6 +170,10 @@ int main (void){
                 loadf(&game);
                 break;
             case 0:
+                if (History != NULL)
+                {
+                    free(History);
+                }
                 return 0;
                 break;
             
@@ -692,7 +714,7 @@ int game_shop(Game *game){
             }
         break;
         case 0:
-            set_status("");
+            set_status("");            
             return 0;
             break;
         
@@ -705,11 +727,38 @@ int game_shop(Game *game){
     }
 }
 
+
 int day_history(Game *game){
-    
+    char choice_input[10];
+    int choice_inputnum = 0;
+    while(1){
+        system("cls");
+        DisplayDayHistory();
+        printf("> ");
+        fgets(choice_input, sizeof(choice_input), stdin);
+        if (isdigit(choice_input[0])){
+            choice_inputnum = atoi(&choice_input[0]);
+        }
+        else{
+            set_status("Please enter numbers only!");
+            continue;
+        }
+
+        switch (choice_inputnum)
+        {
+        case 0:
+            return 0;
+            break;
+        
+        default:
+            set_status("You clearly have only one option, what are you doing?");
+            break;
+        }
+    }
 }
 
 int day_progress(Game *game){
+    add_day_to_history(game->day, game->wallet);
     game->wallet_day_update = 0.0f;
     game->day++;
     game->canWork = 1;
@@ -780,7 +829,7 @@ int user_assets(){
     while (1){
         system("cls");
         DisplayUserAssets();
-        printf("> %s ", status_message); 
+        printf("> "); 
         fgets(choice_input, sizeof(choice_input), stdin);
         if (isdigit(choice_input[0])){
             choice_inputnum = atoi(&choice_input[0]);
@@ -939,4 +988,19 @@ void DisplayKeno(){
     printf("\r============================================================================================\n");
     printf("\r0. Cancel\n\n");
     printf("\rChoose 3 numbers from 1-20: \n");
+}
+
+void DisplayDayHistory(){
+    printf("\r============================================================================================\n");
+    //logic to print all days
+    if (History == NULL){
+        printf("\rNothing here... Yet\n");
+    }
+    else{
+        for (int i = 0; i < history_count; i++){
+            printf("\rDay: %d --- Wallet: $%.2f\n", History[i].day, History[i].walletd);
+        }
+    }
+    printf("\r============================================================================================\n");
+    printf("\r0. Close\n\n");
 }
