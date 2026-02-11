@@ -32,6 +32,7 @@ Durante o desenvolvimento, pude aprender e praticar na prática:
 - Structs
 - Ponteiros
 - Passagem de structs por referência
+- Gerenciamento de memoria
 - Arrays
 - Controle de estado
 - Loops (`while`, `for`)
@@ -103,6 +104,7 @@ During development, I was able to learn and practice:
 - Structs
 - Pointers
 - Passing structs by reference
+- Memory management
 - Arrays
 - State control
 - Loops (`while`, `for`)
