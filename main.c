@@ -54,6 +54,13 @@ typedef struct Stocks{
 }Stocks;
 Stocks stocks[3];
 
+typedef struct dayrecord{
+    int day;
+    float change;
+}dayrecord;
+
+dayrecord *History = NULL;
+
 char status_message[128];
 
 // not readable at all, don't know what to do about this yet
@@ -182,10 +189,9 @@ void set_status(const char *format, ...){ // This was a bit hard to understand
 // Will ask people and AI to review my code (Hi :D)
 // UPDATE: I had to declare Assets as a global variable :D. This also fixed other problems inside the other functions that use assets struct (09/02)
 void allassets(Assets *assets){ 
-    assets[0] = (Assets){"Phone One", 49.99f, false, "This phone allow you to gamble! How awesome, isn't it?"};
-    assets[1] = (Assets){"Phone Two", 699.99f, false, "This phone supports crypto wallets. Be like Daniel Fraga!"};
-    assets[2] = (Assets){"Phone Three", 1999.99f, false, "This phone allows you to invest in stocks. The safest way to create wealth!"};
-    assets[3] = (Assets){"Descascador de Batata de Luxo", 99999.99f, false, "Buy and find out."};
+    assets[0] = (Assets){"Moto G5", 49.99f, false, "This phone allow you to gamble! How awesome, isn't it?"};
+    assets[1] = (Assets){"Samsung Galaxy S25", 699.99f, false, "This phone supports crypto wallets. Be like Daniel Fraga!"};
+    assets[2] = (Assets){"Iphone 17 Pro Max", 1999.99f, false, "This phone allows you to invest in stocks. The safest way to create wealth!"};
 }
 
 void allcrypto(Crypto *crypto){
@@ -685,19 +691,6 @@ int game_shop(Game *game){
                 set_status("You're broke.");
             }
         break;
-        case 4:
-            if (game->wallet >= assets[3].price && assets[3].purchased != true){
-                set_status("Purchased %s!", assets[3].asset_name);
-                game->wallet = game->wallet - assets[3].price;
-                assets[3].purchased = true;                
-            }
-            else if (assets[3].purchased == true){
-                set_status("You already own this item");
-            }
-            else{
-                set_status("You're broke.");
-            }
-        break;
         case 0:
             set_status("");
             return 0;
@@ -711,9 +704,11 @@ int game_shop(Game *game){
         }
     }
 }
-int day_history(Game *game){
 
+int day_history(Game *game){
+    
 }
+
 int day_progress(Game *game){
     game->wallet_day_update = 0.0f;
     game->day++;
@@ -858,13 +853,11 @@ void DisplayAssetShop(){
     printf("\r%s --- Price: $%.2f --- %s\n %s\n\n", assets[0].asset_name, assets[0].price, assets[0].purchased ? "You own this item" : "You don't own this item", assets[0].description);
     printf("\r%s --- Price: $%.2f --- %s\n %s\n\n", assets[1].asset_name, assets[1].price, assets[1].purchased ? "You own this item" : "You don't own this item", assets[1].description);
     printf("\r%s --- Price: $%.2f --- %s\n %s\n\n", assets[2].asset_name, assets[2].price, assets[2].purchased ? "You own this item" : "You don't own this item", assets[2].description);
-    printf("\r%s --- Price: $%.2f --- %s\n %s\n\n", assets[3].asset_name, assets[3].price, assets[3].purchased ? "You own this item" : "You don't own this item", assets[3].description);
     
     printf("\r============================================================================================\n");
     printf("\r1. Buy %s\n", assets[0].asset_name);
     printf("\r2. Buy %s\n", assets[1].asset_name);
     printf("\r3. Buy %s\n", assets[2].asset_name);
-    printf("\r4. Buy %s\n", assets[3].asset_name);
     printf("\r0. Go back\n\n");
     printf("\rChoose an option: \n");
 }
@@ -882,10 +875,7 @@ void DisplayUserAssets(){
     if (assets[2].purchased) {
         printf("%s!\n", assets[2].asset_name);
     }
-    if (assets[3].purchased) {
-        printf("%s!\n", assets[3].asset_name);
-    }
-    if (assets[0].purchased == false && assets[1].purchased == false && assets[2].purchased == false && assets[3].purchased == false){
+    if (assets[0].purchased == false && assets[1].purchased == false && assets[2].purchased == false){
         printf("You don't own any items :(\n");
     }
     printf("\r============================================================================================\n");
@@ -922,7 +912,6 @@ void DisplayStocksOptions(){
     printf("\r0. Go back\n\n");
     printf("\rChoose an option: \n");
 }
-
 
 void DisplayGambleOptions(){
     printf("\r============================================================================================\n");
