@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <windows.h>
 #include <time.h>
+#include <string.h>
 
 typedef struct Game{
     char username[50];
@@ -58,7 +59,7 @@ char status_message[128];
 // not readable at all, don't know what to do about this yet
 void unlockall(Game *game), set_status(const char *format, ...), DisplayUserAssets(), motherlode(Game *game);
 void DisplayStocksOptions(), allstocks(Stocks *stocks), DisplayMenu(), DisplayAssetShop(), allassets(Assets *assets), DisplayCryptoOptions(), allcrypto(Crypto *crypto);
-void DisplayGambleOptions(), DisplayCoinflip();
+void DisplayGambleOptions(), DisplayCoinflip(), DisplayKeno();
 int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game), user_assets();
 
 int main (void){
@@ -426,28 +427,29 @@ int gamble(Game *game){
         }
 
         switch(choice_inputnum){
-        case 1: {
+        case 1:
             system("cls");
             printf("\r============================================================================================\n");
             printf("\rCoinflip --- Wallet: $%.2f\n", game->wallet);
             printf("\r============================================================================================\n");
             printf("\rEnter your bet amount: $");
 
-            float bet = 0.0f;
-            scanf("%f", &bet);
+            float coinflip_bet = 0.0f;
+            scanf("%f", &coinflip_bet);
             while(getchar() != '\n');
 
-            if (bet <= 0.0f){
+            if (coinflip_bet <= 0.0f){
                 set_status("Bet must be greater than $0!");
                 break;
             }
-            if (bet > game->wallet){
+            if (coinflip_bet > game->wallet){
                 set_status("Not enough money! You have $%.2f.", game->wallet);
                 break;
             }
 
             while (1){
                 system("cls");
+                set_status("");
                 DisplayCoinflip();
                 printf("> %s ", status_message);
                 fgets(choice_input, sizeof(choice_input), stdin);
@@ -472,17 +474,147 @@ int gamble(Game *game){
                 const char *choice_str = (flip_choice == 1) ? "Heads" : "Tails";
 
                 if (flip_choice == h_or_t){
-                    game->wallet += bet;
-                    set_status("You picked %s, it was %s! You won $%.2f!", choice_str, result_str, bet);
+                    game->wallet += coinflip_bet;
+                    set_status("You picked %s, it was %s! You won $%.2f!", choice_str, result_str, coinflip_bet);
                 } 
                 else{
-                    game->wallet -= bet;
-                    set_status("You picked %s, it was %s! You lost $%.2f!", choice_str, result_str, bet);
+                    game->wallet -= coinflip_bet;
+                    set_status("You picked %s, it was %s! You lost $%.2f!", choice_str, result_str, coinflip_bet);
                 }
                 break;
             }
         break;
-        }
+        
+        case 2:
+            system("cls");
+            printf("\r============================================================================================\n");
+            printf("\rKeno --- Wallet: $%.2f\n", game->wallet);
+            printf("\r============================================================================================\n");
+            printf("\rEnter your bet amount: $");
+
+            float keno_bet = 0.0f;
+            scanf("%f", &keno_bet);
+            while(getchar() != '\n');
+
+            if (keno_bet <= 0.0f){
+                set_status("Bet must be greater than $0!");
+                break;
+            }
+            if (keno_bet > game->wallet){
+                set_status("Not enough money! You have $%.2f.", game->wallet);
+                break;
+            }
+
+            while (1){
+                system("cls");
+                set_status("");
+                DisplayKeno();
+                printf("> %s ", status_message);
+                fgets(choice_input, sizeof(choice_input), stdin);
+                
+
+                int picks[3];
+                int count = 0;
+                int cancel = 0;
+                int duplicate = 0;
+
+                char *token = strtok(choice_input, " \n");
+
+                while(token != NULL){
+                    if (!isdigit(token[0])){
+                        set_status("Use only numbers!");
+                        count = -1;
+                        break;
+                    }
+                    int n = atoi(token);
+                    
+                    if (n < 1 || n > 20){
+                        set_status("Numbers must be between 1 and 20!");
+                        count = -1;
+                        break;
+                    }
+
+                    if (n == 0){
+                        cancel = 1;
+                        break;
+                    }
+
+                    for (int i = 0; i < count; i++){
+                        if (picks[i] == n){
+                            duplicate = 1;
+                            break;
+                        }
+                    }
+                    picks[count++] = n;
+
+                    if (count > 3){
+                        set_status("You must choose exactly 3 numbers!");
+                        count = -1;
+                        break;
+                    }
+                    token = strtok(NULL, " \n");
+                }
+                if (cancel){
+                    set_status("You cancelled Keno!");
+                    break;
+                }
+                if (duplicate){
+                    set_status("No repeated numbers allowed!");
+                    break;
+                }
+                if (count != 3){
+                    if (count != -1){
+                        set_status("You must choose exactly 3 numbers!");
+                    continue;
+                    }
+                }
+                int random[6];
+                int random_count = 6;
+                while (random_count < 6){
+                    int r = rand() % 20 + 1;
+                    int exists = 0;
+
+                    for (int i = 0; i < random_count; i++){
+                        if (random[i] == r){
+                            exists = 1;
+                            break;
+                        }
+                    }
+                    if (!exists){
+                        random[random_count++];
+                    }
+                }
+                int hits = 0;
+
+                for (int i = 0; i < 3; i++){
+                    for (int j = 0; j < 6; j++){
+                        if(picks[i] == random[j]){
+                            hits++;
+                            break;
+                        }
+                    }
+                }
+                if (hits == 0){
+                    game->wallet -= keno_bet;
+                    set_status("0 hits! You lost %.2f :(", keno_bet);
+                    break;
+                }
+                else if (hits == 1){
+                    set_status("1 hit! Draw");
+                    break;
+                }
+                else if (hits == 2){
+                    game->wallet += keno_bet * 2;
+                    set_status("2 hits! You won %.2f :)", keno_bet * 2);
+                    break;
+                }
+                else if (hits == 3){
+                    game->wallet += keno_bet * 5;
+                    set_status("3 hits! You won %.2f :O", keno_bet * 5);
+                    break;
+                }
+            }
+        break;
         case 0:
             set_status("");
             return 0;
@@ -797,7 +929,7 @@ void DisplayGambleOptions(){
     printf("\rGamble --- Wallet: $%.2f\n", game.wallet);
     printf("\r============================================================================================\n");
     printf("\r1. Coinflip\n");
-    printf("\r2. Keno (Coming soon!)\n");
+    printf("\r2. Keno\n");
     printf("\r0. Go back\n\n");
     printf("\rChoose an option: \n");
 }
@@ -810,4 +942,12 @@ void DisplayCoinflip(){
     printf("\r2. Tails\n");
     printf("\r0. Cancel (you will lose your bet!)\n\n");
     printf("\rChoose: \n");
+}
+
+void DisplayKeno(){
+    printf("\r============================================================================================\n");
+    printf("\rKeno --- Wallet: $%.2f\n", game.wallet);
+    printf("\r============================================================================================\n");
+    printf("\r0. Cancel\n\n");
+    printf("\rChoose 3 numbers from 1-20: \n");
 }

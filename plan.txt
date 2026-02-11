@@ -34,6 +34,6 @@ save/load system
 
 UPDATE:
 Gamble option:
-	- heads or tails (3 games a day limit)
+	- heads or tails
 	- keno > display numbers from 1 - 20, prompt the user to pick three numbers, machine choose 6 random numbers, compare the numbers chosen by the user and machine,
 		if 1 match = x1 bet, 2 match = x3 bet, 3 match = x4 bet
