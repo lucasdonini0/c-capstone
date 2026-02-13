@@ -85,6 +85,7 @@ void unlockall(Game *game), set_status(const char *format, ...), DisplayUserAsse
 void DisplayStocksOptions(), allstocks(Stocks *stocks), DisplayMenu(), DisplayAssetShop(), allassets(Assets *assets), DisplayCryptoOptions(), allcrypto(Crypto *crypto), add_day_to_history(int day, float change);
 void DisplayGambleOptions(), DisplayCoinflip(), DisplayKeno();
 void DisplayDayHistory();
+int save();
 int workf(Game *game), crypto_investment(Game *game), stocks_investment(Game *game), gamble(Game *game), game_shop(Game *game), day_history(Game *game), day_progress(Game *game), loadf(Game *game), user_assets();
 
 int main (void){
@@ -275,8 +276,8 @@ int load(){
 
 int workf(Game *game){
     game->canWork = 0;
-    float randx = 15;
-    float randy = 60;
+    float randx = 20;
+    float randy = 80;
 
     float random_money_amount = randx + ((float)rand() / (float)RAND_MAX) * (randy - randx);
     
@@ -503,10 +504,12 @@ int gamble(Game *game){
 
                 if (flip_choice == h_or_t){
                     game->wallet += coinflip_bet;
+                    game->wallet_day_update += coinflip_bet;
                     set_status("You picked %s, it was %s! You won $%.2f!", choice_str, result_str, coinflip_bet);
                 } 
                 else{
                     game->wallet -= coinflip_bet;
+                    game->wallet_day_update -= coinflip_bet;
                     set_status("You picked %s, it was %s! You lost $%.2f!", choice_str, result_str, coinflip_bet);
                 }
                 break;
@@ -624,6 +627,7 @@ int gamble(Game *game){
                 }
                 if (hits == 0){
                     game->wallet -= keno_bet;
+                    game->wallet_day_update -= keno_bet;
                     set_status("0 hits! You lost %.2f :(", keno_bet);
                     break;
                 }
@@ -633,11 +637,13 @@ int gamble(Game *game){
                 }
                 else if (hits == 2){
                     game->wallet += keno_bet * 2;
+                    game->wallet_day_update += keno_bet * 2;
                     set_status("2 hits! You won %.2f :)", keno_bet * 2);
                     break;
                 }
                 else if (hits == 3){
                     game->wallet += keno_bet * 5;
+                    game->wallet_day_update += keno_bet * 5;
                     set_status("3 hits! You won %.2f :O", keno_bet * 5);
                     break;
                 }
@@ -873,7 +879,7 @@ void DisplayMenu(){
     printf("\r============================================================================================\n");
     printf("\rMoney Game Thing!\n");
     printf("\r============================================================================================\n");
-    printf("\rWelcome, %s!  Day %d - $%.2f\n", game.username, game.day, game.wallet_day_update);
+    (game.wallet_day_update == 0.0f) ? printf("\rWelcome, %s!  Day %d - $%.2f\n", game.username, game.day, game.wallet_day_update) : printf("\rWelcome, %s!  Day %d - $%+.2f\n", game.username, game.day, game.wallet_day_update);
     printf("\rWallet: $%.2f - Crypto Portfolio: $%.2f - Stocks Portfolio: $%.2f\n", game.wallet, game.crypto, game.stocks);
     printf("\r============================================================================================\n");
     printf("\rOptions\n");
